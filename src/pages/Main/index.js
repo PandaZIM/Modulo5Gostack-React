@@ -14,6 +14,7 @@ export default class Main extends Component {
     state = {
         newRepo: '',
         repositories:[],
+        error: null
     }
 
 
@@ -35,15 +36,26 @@ export default class Main extends Component {
         }
     }
 
-    handeInputchange = e => {
+    handleInputchange = e => {
         this.setState({ newRepo: e.target.value })
     }
 
     //Aplicando data
     handleSubmit = async e => {
+        
+        //setando error para conseguir pegar error
+        this.setState({ error: false})
+        
+        //tentativa de achar error
+        try{
+
         e.preventDefault()
         
         const { newRepo, repositories } = this.state
+
+        const hasRepo = repositories.find( repo => repo.name === newRepo)
+
+        if (hasRepo) throw new Error('repositorio duplicado')
 
         //chamada da api
         const response = await api.get(`/repos/${newRepo}`)
@@ -57,12 +69,18 @@ export default class Main extends Component {
             newRepo: '',
         })
 
+      } catch (error){
+        //caso achar error, error seta true
+        this.setState({ error: true })
+        
+      }
+        
     }
 
     render() {
-        const { newRepo, repositories } = this.state
+        const { newRepo, repositories, error } = this.state
 
-
+    
         return (
             <Container>
                 <h1>
@@ -70,13 +88,13 @@ export default class Main extends Component {
                     Repositórios  
                 </h1>
         
-                <Form onSubmit = {this.handleSubmit}>
+                <Form onSubmit = {this.handleSubmit} error ={error}>
                     
                     <input 
                         type="text"
                         placeholder="Adicionar repositorio"
                         value={newRepo}
-                        onChange={this.handeInputchange} 
+                        onChange={this.handleInputchange} 
                      />
         
                     <SubmitButton>
